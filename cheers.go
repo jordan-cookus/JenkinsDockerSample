@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math"
 	"math/rand"
 	"time"
 
@@ -11,31 +10,112 @@ import (
 
 var random *rand.Rand
 var allSprites sprite.SpriteGroup
-var bubbles []*Bubble
 var Width int
 var Height int
 
-const (
-	falling = iota
-	swimming
-)
+const tree_c0 = `
+xxxxxxxxxxxxxxxxxxxxxxxxxxx###
+xxxxxxxxxxxxxxxxxxxxxxx#########
+xxxxxxxxxxxx###xxxx########xxxxxxx###
+xxxxxxxx########/#####\#####xx##########
+xxxx#########/##########--##################
+xx####xxxxxxxxx###################xxxxxxxx#####
+xx#xxxxxxxxxx####xxxxxx##########/@@xxxxxxxxxx###
+#xxxxxxxxxx####xxxxxxxxx##  .#\#####xxxxxxxxxxxx##
+xxxxxxxxxx###xxxxxxxxxxx$$$$xxx.x####xxxxxxxxxxxx#
+xxxxxxxxx##xxxxxxxxxxxxx$$$$xxxxxxx###
+xxxxxxxxx#xxxxxxxxxxxxxx$$$$xxxxxxx##
+xxxxxxxxxxxxxxxxxxxxxxxx$$$$xxxxxxx##
+xxxxxxxxxxxxxxxxxxxxxxxx$$$$xxxxxxxx#
+xxxxxxxxxxxxxxxxxxxxxxxx$$$$
+xxxxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxx$$$$$
+',',.~.,'~.,'',',.~  $$$$$
+~,', ',',.~,',.~ ~,',$$$$$~,',~,',
+ ~,',',.~~,',',',.~ $$$$$$$  ,',.~,'
+     ',',.~,.~.',','$$$$$$$,',.~,'
+',',',',.~,',.~    $$$$$$$$$,',.~,'
+~,',,.~,.~,.~',',' $$$$$$$$$~~,',
+  ~,',~,',  ~,', ~,', $$$ ,,.~,.~,.
+~,.  ~~.. ~, ,~ ~~'' .'  ~,. ~,.. ~,
+  , , ~.~ ' ~~ '',' ~~.  ',.~ ,~~ . 
+,.~,',.~ ~,'   ',',.~,.~.',~,',  ~,', ~,
+`
 
-const cheers_c0 = `
-                                                                  ,---,  
-                                                               ,`+"`"+`--.' |  
-  ,----..    ,---,                                             |   :  :  
- /   /   \ ,--.' |                                             '   '  ;  
-|   :     :|  |  :                          __  ,-.            |   |  |  
-.   |  ;. /:  :  :                        ,' ,'/ /|  .--.--.   '   :  ;  
-.   ; /--`+"`"+` :  |  |,--.   ,---.     ,---.  '  | |' | /  /    '  |   |  '  
-;   | ;    |  :  '   |  /     \   /     \ |  |   ,'|  :  /`+"`"+`./  '   :  |  
-|   : |    |  |   /' : /    /  | /    /  |'  :  /  |  :  ;_    ;   |  ;  
-.   | '___ '  :  | | |.    ' / |.    ' / ||  | '    \  \    `+"`"+`. `+"`"+`---'. |  
-'   ; : .'||  |  ' | :'   ;   /|'   ;   /|;  : |     `+"`"+`----.   \ `+"`"+`--..`+"`"+`;  
-'   | '/  :|  :  :_:,''   |  / |'   |  / ||  , ;    /  /`+"`"+`--'  /.--,_     
-|   :    / |  | ,'    |   :    ||   :    | ---'    '--'.     / |    |`+"`"+`.  
- \   \ .'  `+"`"+`--''       \   \  /  \   \  /            `+"`"+`--'---'  `+"`"+`-- -`+"`"+`, ; 
-  `+"`"+`---`+"`"+`                 `+"`"+`----'    `+"`"+`----'                         '---`+"`"+`"`
+const tree_c1 = `
+xxxxxxxxxxxxxxxxxxxxxxxxxxx#####
+xxxxxxxxxxxxxxxxxxxxxxx#######
+xxxxxxxxxxxx###xxxx########xxxxxxx###
+xxxxxxxxx########/#####\#####xx##########
+xxxxx#########/##########--##################
+xxx####xxxxxxxx###################xxxxxxx#####
+xx##xxxxxxxxx####xxxxxx##########/@@xxxxxxxxx###
+xx#xxxxxxxxx####xxxxxxxx##  .#\#####xxxxxxxxxxx##
+xxxxxxxxxxx###xxxxxxxxxx$$$$xxxx####xxxxxxxxxxx#
+xxxxxxxxxx##xxxxxxxxxxxx$$$$xxxxxx###
+xxxxxxxxxx#xxxxxxxxxxxxx$$$$xxxxxx##
+xxxxxxxxxxxxxxxxxxxxxxxx$$$$xxxxxx##
+xxxxxxxxxxxxxxxxxxxxxxxx$$$$xxxxxxx#
+xxxxxxxxxxxxxxxxxxxxxxxx$$$$
+xxxxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxx$$$$$
+xxxxxxxxxxxxxxxxxxxxx$$$$$
+',',.~.,'~.,'',',.~  $$$$$
+~,', ',',.~,',.~ ~,',$$$$$~,',~,',
+ ~,',',.~~,',',',.~ $$$$$$$  ,',.~,'
+     ',',.~,.~.',','$$$$$$$,',.~,'
+',',',',.~,',.~    $$$$$$$$$,',.~,'
+~,',,.~,.~,.~',',' $$$$$$$$$~~,',
+  ~,',~,',  ~,', ~,', $$$ ,,.~,.~,.
+~,.  ~~.. ~, ,~ ~~'' .'  ~,. ~,.. ~,
+  , , ~.~ ' ~~ '',' ~~.  ',.~ ,~~ . 
+,.~,',.~ ~,'   ',',.~,.~.',~,',  ~,', ~,
+`
+
+
+const sun_c0 = `
+      ;   :   ;
+   .   \_,!,_/   ,
+    '.,'     '.,'
+     /         \
+~ -- :         : -- ~
+     \         /
+    ,''._   _.''.
+   '   / '!' \   '
+      ;   :   ;
+`
+
+const cloud_c0_timer = 22
+const cloud_c1_timer = 19
+
+const cloud_c0 = `
+xxxxxxxxx_ _ __.
+xxxxxxx('       ).
+xxxxxx(          ).
+xxxxx_(          '''.
+x.=('(           .   )
+((        (..____.:'-'
+'(        )_),
+xx' _______.:'   )
+xxxxxxxxxx-----'`
+
+const cloud_c1 = `
+xxxx.--
+x.+(   )
+x(   .  )
+(   (   ))
+x'- __.'`
 
 const whale_c0 = `xxxxxxxxxxxxxxx##xxxxxxxx.xxxxx
 xxxxxxxxx##x##x##xxxxxxx==xxxxx
@@ -62,190 +142,329 @@ x===xx\                      }x
 xxxxxxx\__          o ______/xx
 xxxxxxxxxx\__        /    /xxxx`
 
+const font_crawford_d = `
+x___
+|   \
+|    \
+|  D  |
+|     |
+|     |
+|_____|`
 
-const glass_img = `
-                    _____________________
-   __....::::::::::'''''''          '''''''::::::::....__
-.:'::.                                                .::':. 
- ':. ':::::.___.____,__________________ _._____..:::::' ,'
-   ':.    ':::::::::::::::::::::::::::::::::::::'     : '
-     ':.                                            .:'
-       ':.                                        .:'
-         '.                                      .'
-           '-._                              _.-'
-               '- .._                 _.. -'
-                     ''' - .,.,. - '''
-                          (:' .:)
-                           :| '|
-                           |. ||
-                           || :|
-                           :| |'
-                           || :|
-                           '| ||
-                           |: ':
-                           || :|
-                     __..--:| |'--..__
-               _...-'  _.' |' :| '.__ '-..._
-             / -  ..---    '''''   ---...  _ \
-             \  _____  ..--   --..     ____  /
-              '-----....._________.....-----'`
+const font_crawford_e = `
+xxx___
+xx/  _]
+x/  [_
+|    _]
+|   [_
+|     |
+|_____|`
+
+const font_crawford_l = `
+x_
+| |
+| |
+| |___
+|     |
+|     |
+|_____|`
+
+const font_crawford_m = `
+x___ ___
+|   |   |
+| _   _ |
+|  \_/  |
+|   |   |
+|   |   |
+|___|___|`
+
+const font_crawford_n = `
+x____
+|    \
+|  _  |
+|  |  |
+|  |  |
+|  |  |
+|__|__|`
+
+const font_crawford_r = `
+x____
+|    \
+|  D  )
+|    /
+|    \
+|  .  \
+|__|\_|`
+
+const font_crawford_s = `
+xx_____
+x/ ___/
+(   \_
+x\__  |
+x/  \ |
+x\    |
+xx\___|`
+
+const font_crawford_u = `
+x__ __
+|  |  |
+|  |  |
+|  |  |
+|  :  |
+|     |
+x\__,_|`
 
 
-type Title struct {
+type Letter struct {
 	sprite.BaseSprite
+	Timer   int
+	TimeOut int
 }
 
 type Whale struct {
 	sprite.BaseSprite
-	Facing   int
-	MinX     int
-	MaxX     int
-	Timer    int
-	TimeOut  int
-	TargetY  int
-	AY       int
-	VY       int
-	State    int
+	Facing      int
+	MinX        int
+	MaxX        int
+	Timer       int
+	TimeOut     int
+	TargetX     int
 }
 
-type Glass struct {
+type Tree struct {
 	sprite.BaseSprite
-	Width   int
-	Counter int
+	TimeOut int
+	Timer   int
 }
 
-type Bubble struct {
+type Ocean struct {
 	sprite.BaseSprite
 	Timer   int
 	TimeOut int
-	Dead    bool
 }
 
-const bubble_c0 = "o"
-const bubble_c1 = ","
-const bubble_c2 = "."
+type Sun struct {
+	sprite.BaseSprite
+	Timer   int
+	TimeOut int
+	PosX    float64
+	PosY    float64
+}
 
-func NewTitle() *Title {
-	t := &Title{BaseSprite: sprite.BaseSprite{
+type Cloud struct {
+	sprite.BaseSprite
+	Timer   int
+	TimeOut int
+	VX      int
+}
+
+func NewLetter(s string, x, y, timeOut int) *Letter {
+	l := &Letter{BaseSprite: sprite.BaseSprite{
+		Visible: false,
+		X: x,
+		Y: y},
+		TimeOut: timeOut,
+	}
+	l.AddCostume(sprite.NewCostume(s, 'x'))
+	return l
+}
+
+func (l *Letter) Update() {
+	l.Timer++
+	if l.Timer >= l.TimeOut {
+		l.Visible = true
+	}
+}
+
+func addTitle() {
+	charMap := map[rune]string{
+		'd': font_crawford_d,
+		'e': font_crawford_e,
+		'l': font_crawford_l,
+		'm': font_crawford_m,
+		'n': font_crawford_n,
+		'r': font_crawford_r,
+		's': font_crawford_s,
+		'u': font_crawford_u,
+	}
+
+	var char_width = 7 // hard-coding this, despite different widths
+	var fade_offset = 3
+	var y_offset = 10
+
+	for cnt, c := range "endless" {
+		l := NewLetter(charMap[c], cnt*char_width+10, y_offset, cnt*fade_offset+10)
+		allSprites.Sprites = append(allSprites.Sprites, l)
+	}
+
+	for cnt, c := range "summer" {
+		l := NewLetter(charMap[c], cnt*char_width+65, y_offset, cnt*fade_offset+10)
+		allSprites.Sprites = append(allSprites.Sprites, l)
+	}
+}
+
+func NewTree() *Tree {
+	t := &Tree{BaseSprite: sprite.BaseSprite{
 		Visible: true,
 		Y:       2},
+		TimeOut: 15,
 	}
-	t.AddCostume(sprite.NewCostume(cheers_c0, 'x'))
-	t.X = Width / 2 - (t.Width / 2)
+	t.AddCostume(sprite.NewCostume(tree_c0, 'x'))
+	t.AddCostume(sprite.NewCostume(tree_c1, 'x'))
 	return t
 }
 
-func NewWhale(g *Glass) *Whale {
+func (t *Tree) Update() {
+	t.Timer++
+
+	if t.Timer >= t.TimeOut {
+		t.Timer = 0
+		t.TimeOut = random.Intn(20)+30
+		t.CurrentCostume++
+		if t.CurrentCostume >= len(t.Costumes) {
+			t.CurrentCostume = 0
+		}
+	}
+}
+
+func NewOcean() *Ocean {
+	o := &Ocean{BaseSprite: sprite.BaseSprite{
+		Visible: true,
+		X:       36,
+		Y:       26},
+		TimeOut: 20,
+	}
+
+	// create some random waves
+	for cnt := 0; cnt < 3; cnt++ {
+		o.AddOceanCostume()
+	}
+	
+	return o
+}
+
+func (o *Ocean) AddOceanCostume() {
+	var s string
+	for l := 0; l < 9; l++ {
+		w := make([]rune, 80)
+		for cnt := 0; cnt < len(w); cnt++ {
+			if random.Intn(2) == 0 {
+				w[cnt] = '~'
+			}
+		}
+		s += string(w) + "\n"
+	}
+	o.AddCostume(sprite.NewCostume(s, 'x'))
+}
+
+func (o *Ocean) Update() {
+	o.Timer++
+
+	if o.Timer >= o.TimeOut {
+		o.Timer = 0
+		o.CurrentCostume++
+		if o.CurrentCostume >= len(o.Costumes) {
+			o.CurrentCostume = 0
+		}
+	}
+}
+
+func NewSun() *Sun {
+	s := &Sun{BaseSprite: sprite.BaseSprite{
+		Visible: true},
+		TimeOut: 30,
+	}
+	s.AddCostume(sprite.NewCostume(sun_c0, 'x'))
+	return s
+}
+
+func (s *Sun) Update() {
+	s.Timer++
+	if s.Timer > s.TimeOut {
+		s.PosX++
+		// arc the sun down in a parabola
+		s.PosY = 0.00625 * s.PosX * s.PosX
+		s.X = int(s.PosX)
+		s.Y = int(s.PosY)
+		if s.Y >= 25 {
+			s.Visible = false
+		}
+		s.Timer = 0
+	}
+}
+
+func NewCloud(cloudType, posX, posY int) *Cloud {
+	c := &Cloud{BaseSprite: sprite.BaseSprite{
+		Visible:        true,
+		Y:              posY,
+		X:              posX},
+		VX: -1,
+	}
+	if cloudType == 0 {
+		c.AddCostume(sprite.NewCostume(cloud_c0, 'x'))
+		c.TimeOut = cloud_c0_timer
+	} else if cloudType == 1 {
+		c.AddCostume(sprite.NewCostume(cloud_c1, 'x'))
+		c.TimeOut = cloud_c1_timer
+	}
+
+	return c
+}
+
+func (c *Cloud) Update() {
+	c.Timer++
+	if c.Timer > c.TimeOut {
+		c.X = c.X + c.VX
+
+		if c.VX < 0 && c.X + c.Width < 0 {
+			c.X = 102
+		}
+		c.Timer = 0
+	}
+}
+
+func NewWhale() *Whale {
 	w := &Whale{BaseSprite: sprite.BaseSprite{
 		Visible: true,
-		Y:       -10},
-		TargetY: Height - (g.Height + 8),
+		X:       100,
+		Y:       22},
 		Facing:  -1,
-		MinX:    g.X,
-		TimeOut: 2,
-		AY:      1,
-		VY:      2,
-		State:   falling,
+		MinX:    40,
+		TimeOut: 4,
 	}
-	w.AddCostume(sprite.NewCostume(whale_c0, 'x'))
-	w.X = Width / 2 - w.Width / 2
-	w.MaxX = g.X+g.Width-w.Width
+	w.AddCostume(sprite.NewCostume(whale_c1, 'x'))
+	w.AddCostume(sprite.NewCostume(whale_c1_rev, 'x'))
 	return w
 }
 
+func (w *Whale) MoveRight() {
+	w.TargetX += 10
+	w.Facing = 1
+	w.CurrentCostume = 1
+}
+
 func (w *Whale) Update() {
-	if w.State == falling {
-		if w.Y < w.TargetY {
-			w.VY += w.AY
-			w.Y += w.VY
+	w.Timer++
+
+	if w.Timer >= w.TimeOut {
+		if w.X > 113 {
+			w.Visible = false
 		} else {
-			w.Y = w.TargetY
-			w.State = swimming
-			w.Costumes = nil
-			w.AddCostume(sprite.NewCostume(whale_c1, 'x'))
+			w.Visible = true
 		}
-	} else {
-		w.Timer++
 
-		if w.Timer >= w.TimeOut {
-			w.Timer = 0
-			w.X += w.Facing
-
-			if w.Facing == -1 && w.X <= w.MinX {
-				w.Facing = 1
-				w.Costumes = nil
-				w.AddCostume(sprite.NewCostume(whale_c1_rev, 'x'))
-			} else if w.Facing == 1 && w.X >= w.MaxX {
+		w.Timer = 0
+		w.X += w.Facing
+		if w.X <= w.MinX {
+			w.X = w.MinX
+		}
+		if w.Facing == 1 {
+			if w.TargetX <= 0 {
 				w.Facing = -1
-				w.Costumes = nil
-				w.AddCostume(sprite.NewCostume(whale_c1, 'x'))
+				w.CurrentCostume = 0
+			} else {
+				w.TargetX--
 			}
-		}
-	}
-}
-
-func NewGlass() *Glass {
-	g := &Glass{BaseSprite: sprite.BaseSprite{
-		Visible: true,
-		X:       Width/2-30},
-		Width: 60,
-	}
-	g.AddCostume(sprite.NewCostume(glass_img, ' '))
-	g.Y = Height - (g.Height + 5)
-	return g
-}
-
-func (g *Glass) Update() {
-	g.Counter++
-	if g.Counter > 1 {
-		b := g.NewBubble()
-		bubbles = append(bubbles, b)
-		allSprites.Sprites = append(allSprites.Sprites, b)
-		g.Counter = 0
-	}
-}
-
-func (g *Glass) NewBubble() *Bubble {
-	p := g.pointInGlass()
-	b := &Bubble{BaseSprite: sprite.BaseSprite{
-		Visible: true,
-		X: g.X+g.Width/2+p.X,
-		Y: g.Y+p.Y+10},
-		TimeOut: random.Intn(5)+3,
-	}
-	b.AddCostume(sprite.NewCostume(bubble_c0, '~'))
-	b.AddCostume(sprite.NewCostume(bubble_c1, '~'))
-	b.AddCostume(sprite.NewCostume(bubble_c2, '~'))
-	return b
-}
-
-func (b *Bubble) Update() {
-	b.Y--
-	b.Timer++
-	if b.Timer > b.TimeOut {
-		b.CurrentCostume++
-		b.TimeOut = random.Intn(5)+3
-		if b.CurrentCostume >= len(b.Costumes) {
-			b.Visible = false
-			b.Dead = true
-		}
-	}
-}
-
-func (g *Glass) pointInGlass() sprite.Point {
-	x := random.Intn(g.Width-2)-(g.Width-2)/2
-	y := int(math.Round(-0.010 * float64(x) * float64(x)))
-	return sprite.Point{x, y}
-}
-
-func Vaccuum() {
-	for cnt := len(bubbles)-1; cnt >= 0; cnt-- {
-		b := bubbles[cnt]
-		if b.Dead == true {
-			allSprites.Remove(b)
-			copy(bubbles[cnt:], bubbles[cnt+1:])
-			bubbles[len(bubbles)-1] = nil
-			bubbles = bubbles[:len(bubbles)-1]
 		}
 	}
 }
@@ -271,20 +490,24 @@ func main() {
 		}
 	}()
 
-	glass := NewGlass()
-
 	txt := "Press 'ESC' to quit."
 	c := sprite.NewCostume(txt, '~')
 	text := sprite.NewBaseSprite(Width/2-len(txt)/2, Height-2, c)
 
-	t := NewTitle()
-	w := NewWhale(glass)
+	w := NewWhale()
+	cl0 := NewCloud(0, 102, 2)
+	cl1 := NewCloud(1, 71, 2)
+	cl2 := NewCloud(1, 23, 3)
+	s := NewSun()
+	o := NewOcean()
+	t := NewTree()
 
-	allSprites.Sprites = append(allSprites.Sprites, t)
-	allSprites.Sprites = append(allSprites.Sprites, glass)
-	allSprites.Sprites = append(allSprites.Sprites, w)
-	allSprites.Sprites = append(allSprites.Sprites, text)
+	allSprites.Sprites = append(allSprites.Sprites, s)
+	addTitle()
 
+	for _, spr := range []sprite.Sprite{cl0, cl1, cl2, o, t, w, text} {
+		allSprites.Sprites = append(allSprites.Sprites, spr)
+	}
 
 mainloop:
 	for {
@@ -295,6 +518,8 @@ mainloop:
 			if ev.Type == tm.EventKey {
 				if ev.Key == tm.KeyCtrlC || ev.Key == tm.KeyEsc || ev.Ch == 'q' {
 					break mainloop
+				} else if ev.Key == tm.KeyArrowRight {
+					w.MoveRight()
 				}
 			} else if ev.Type == tm.EventResize {
 				Width = ev.Width
@@ -305,7 +530,5 @@ mainloop:
 			allSprites.Render()
 			time.Sleep(50 * time.Millisecond)
 		}
-		Vaccuum()
 	}
-
 }
