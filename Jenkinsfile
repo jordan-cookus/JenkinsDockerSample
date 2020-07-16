@@ -9,8 +9,7 @@ pipeline {
 
     stage('stage2') {
       steps {
-        sh '''dockerImage = docker.build registry + ":$BUILD_NUMBER"
-          echo ":$BUILD_NUMBER"'''
+        sshScript 'script.sh'
       }
     }
 
