@@ -14,7 +14,7 @@ pipeline {
       }
     }
 
-    stage('') {
+    stage('error') {
       steps {
         sh '''docker.withRegistry( \'\', registryCredential ) {
             dockerImage.push()'''
