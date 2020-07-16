@@ -16,10 +16,9 @@ pipeline {
 
     stage('error') {
       steps {
-        sh '''docker.withRegistry( \'\', registryCredential ) {
-            dockerImage.push()'''
-        }
+        sshScript 'script.sh'
       }
-
     }
+
   }
+}
